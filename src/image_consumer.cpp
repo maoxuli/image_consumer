@@ -94,8 +94,11 @@ void ImageConsumer::image_callback(const sensor_msgs::Image::ConstPtr& image_msg
 
 int get_fourcc(const std::string& format)
 {
-    int codec = 0; 
-    codec = cv::VideoWriter::fourcc('X', '2', '6', '4');
+    int codec = 0;
+    if (format.size() >= 4) 
+    {
+        codec = cv::VideoWriter::fourcc(format[0], format[1], format[2], format[3]);
+    } 
     return codec; 
 }
 
@@ -103,7 +106,7 @@ int get_fourcc(const std::string& format)
 // Refresh parameters for every open  
 bool ImageConsumer::Open() 
 {
-    ROS_INFO("Opening stream...");
+    ROS_INFO("Opening output stream...");
     std::lock_guard<std::mutex> lock(_mutex); 
 
     // auto reset on failure or end of stream 
@@ -131,7 +134,7 @@ bool ImageConsumer::Open()
     double fps = 0; 
     LoadParam(_private_nh, "fps", fps); 
 
-    ROS_INFO_STREAM("Stream target: " << target);
+    ROS_INFO_STREAM("Output stream target: " << target);
     if (backend == "gstreamer") {
         _writer.open(target, cv::CAP_GSTREAMER, get_fourcc(format), fps, cv::Size(width, height));
     }
@@ -141,20 +144,20 @@ bool ImageConsumer::Open()
 
     if (!_writer.isOpened()) 
     {
-        ROS_ERROR_STREAM("Failed to open stream target: " << target);
+        ROS_ERROR_STREAM("Failed to open output stream target: " << target);
         return false;
     }
 
-    ROS_INFO("Stream opened.");
+    ROS_INFO("Output stream opened.");
     return true;
 }
 
 void ImageConsumer::Close() 
 {
-    ROS_INFO("Closing stream...");
+    ROS_INFO("Closing output stream...");
     std::lock_guard<std::mutex> lock(_mutex); 
     _writer.release(); 
-    ROS_INFO("Stream closed!");
+    ROS_INFO("Output stream closed!");
 }
 
 bool ImageConsumer::Write(const cv::Mat& image)
@@ -201,7 +204,7 @@ void ImageConsumer::write_thread()
         if (stop_time - start_time > 1000000000)
         {
             start_time = stop_time; 
-            ROS_INFO_STREAM("fps: " << frame_count); 
+            ROS_INFO_STREAM("Wirte FPS: " << frame_count); 
             frame_count = 0; 
         }
     }

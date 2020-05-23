@@ -1,0 +1,9 @@
+<library path="lib/libimage_consumer_nodelet">
+  <class name="image_consumer/ImageConsumerNodelet"
+        type="image_consumer::ImageConsumerNodelet"
+        base_class_type="nodelet::Nodelet">
+    <description>
+      image_consumer nodelet 
+    </description>
+  </class>
+</library>
