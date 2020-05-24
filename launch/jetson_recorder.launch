@@ -4,9 +4,9 @@
   <arg name="respawn" default="false" />
   <arg name="visualize" default="false" />
 
-  <arg name="node_name" default="image_consumer" />
+  <arg name="node_name" default="video_recorder" />
   <arg name="image_topic" default="image_raw" />
-  <arg name="reset_service" default="reset_consumer" />
+  <arg name="reset_service" default="reset_recorder" />
   <arg name="auto_reset" default="true" />
 
   <arg name="target" default="output.mkv" />
@@ -17,7 +17,7 @@
 
   <arg name="pipeline" default="appsrc ! video/x-raw, format=(string)BGR ! videoconvert ! video/x-raw, format=BGRx ! nvvidconv ! video/x-raw(memory:NVMM), format=(string)I420 ! omxh264enc ! matroskamux ! queue ! filesink location=$(arg target)" />
 
-  <node pkg="image_consumer" type="image_consumer_node" name="$(arg node_name)" 
+  <node pkg="video_recorder" type="video_recorder_node" name="$(arg node_name)" 
         output="$(arg output)" respawn="$(arg respawn)"> 
     <param name="backend" type="str" value="gstreamer" />
     <param name="target" type="str" value="$(arg pipeline)" />

@@ -1,11 +1,11 @@
 #include <ros/ros.h>
-#include "image_consumer.h"
+#include "video_recorder.h"
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "image_consumer");
+    ros::init(argc, argv, "video_recorder");
     ros::NodeHandle nh, private_nh("~"); 
-    ImageConsumer consumer(nh, private_nh); 
+    VideoRecorder recorder(nh, private_nh); 
     ros::spin(); 
     return 0;
 }

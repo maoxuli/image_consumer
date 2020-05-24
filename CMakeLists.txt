@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(image_consumer)
+project(video_recorder)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -116,8 +116,8 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_nodelet 
   src/thread_safe_image.cpp
-  src/image_consumer.cpp 
-  src/image_consumer_nodelet.cpp
+  src/video_recorder.cpp 
+  src/video_recorder_nodelet.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -133,8 +133,8 @@ target_link_libraries(${PROJECT_NAME}_nodelet ${catkin_LIBRARIES} ${OpenCV_LIBRA
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
   src/thread_safe_image.cpp
-  src/image_consumer.cpp 
-  src/image_consumer_node.cpp
+  src/video_recorder.cpp 
+  src/video_recorder_node.cpp
 )
 
 ## Rename C++ executable without prefix

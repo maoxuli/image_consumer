@@ -1,5 +1,5 @@
-#ifndef __IMAGE_CONSUMER_H
-#define __IMAGE_CONSUMER_H
+#ifndef __VIDEO_RECORDER_H
+#define __VIDEO_RECORDER_H
 
 #include <ros/ros.h>
 #include <opencv2/opencv.hpp>
@@ -13,13 +13,13 @@
 
 #include "thread_safe_image.h"
 
-class ImageConsumer
+class VideoRecorder
 {
 public: 
-    ImageConsumer(const ros::NodeHandle& nh = ros::NodeHandle(), 
+    VideoRecorder(const ros::NodeHandle& nh = ros::NodeHandle(), 
                   const ros::NodeHandle& private_nh = ros::NodeHandle("~")); 
 
-    ~ImageConsumer(); 
+    ~VideoRecorder(); 
 
 private: 
     bool Open(); 
@@ -49,4 +49,4 @@ private:
     std::shared_ptr<ThreadSafeImage> _queued_image; 
 }; 
 
-#endif // #ifndef __IMAGE_CONSUMER_H
+#endif // #ifndef __VIDEO_RECORDER_H

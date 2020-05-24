@@ -1,9 +1,9 @@
-#include "image_consumer.h"
+#include "video_recorder.h"
 #include "ros_parameter.hpp"
 
 #include <cv_bridge/cv_bridge.h>
 
-ImageConsumer::ImageConsumer(const ros::NodeHandle& nh, 
+VideoRecorder::VideoRecorder(const ros::NodeHandle& nh, 
                              const ros::NodeHandle& private_nh) 
 : _nh(nh)
 , _private_nh(private_nh)
@@ -13,11 +13,11 @@ ImageConsumer::ImageConsumer(const ros::NodeHandle& nh,
     {
         std::string reset_service = "reset";
         ROS_INFO_STREAM("Advertise reset service: " << reset_service);
-        _reset_svr = _nh.advertiseService(reset_service, &ImageConsumer::reset_callback, this);
+        _reset_svr = _nh.advertiseService(reset_service, &VideoRecorder::reset_callback, this);
         
         std::string image_topic = "image"; 
         ROS_INFO_STREAM("Subscribe image topic: " << image_topic);
-        _image_sub = _nh.subscribe(image_topic, 2, &ImageConsumer::image_callback, this);
+        _image_sub = _nh.subscribe(image_topic, 2, &VideoRecorder::image_callback, this);
     }
     catch (const ros::Exception& ex)
     {
@@ -29,7 +29,7 @@ ImageConsumer::ImageConsumer(const ros::NodeHandle& nh,
     {
         _stop = false; 
         ROS_INFO_STREAM("Start write thread...");
-        _thread = boost::thread(boost::bind(&ImageConsumer::write_thread, this));
+        _thread = boost::thread(boost::bind(&VideoRecorder::write_thread, this));
     } 
     catch (const std::exception& ex) 
     {
@@ -38,7 +38,7 @@ ImageConsumer::ImageConsumer(const ros::NodeHandle& nh,
     }
 }
 
-ImageConsumer::~ImageConsumer() 
+VideoRecorder::~VideoRecorder() 
 {
     Close(); 
 
@@ -51,7 +51,7 @@ ImageConsumer::~ImageConsumer()
     } 
 }
 
-bool ImageConsumer::reset_callback(std_srvs::Trigger::Request &request, 
+bool VideoRecorder::reset_callback(std_srvs::Trigger::Request &request, 
                                   std_srvs::Trigger::Response &response)
 {
     try 
@@ -71,7 +71,7 @@ bool ImageConsumer::reset_callback(std_srvs::Trigger::Request &request,
     }
 }
 
-void ImageConsumer::image_callback(const sensor_msgs::Image::ConstPtr& image_msg)
+void VideoRecorder::image_callback(const sensor_msgs::Image::ConstPtr& image_msg)
 {
     try
     {
@@ -107,7 +107,7 @@ int get_fourcc(const std::string& format)
 
 // Open stream for write 
 // Refresh parameters for every open  
-bool ImageConsumer::Open() 
+bool VideoRecorder::Open() 
 {
     ROS_INFO("Opening output stream...");
     std::lock_guard<std::mutex> lock(_mutex); 
@@ -155,7 +155,7 @@ bool ImageConsumer::Open()
     return true;
 }
 
-void ImageConsumer::Close() 
+void VideoRecorder::Close() 
 {
     ROS_INFO("Closing output stream...");
     std::lock_guard<std::mutex> lock(_mutex); 
@@ -163,7 +163,7 @@ void ImageConsumer::Close()
     ROS_INFO("Output stream closed!");
 }
 
-bool ImageConsumer::Write(const cv::Mat& image)
+bool VideoRecorder::Write(const cv::Mat& image)
 {
     ROS_DEBUG("Write image to stream...");
     if (image.empty()) return false; 
@@ -174,7 +174,7 @@ bool ImageConsumer::Write(const cv::Mat& image)
     return true;  
 }
 
-void ImageConsumer::write_thread() 
+void VideoRecorder::write_thread() 
 {  
     ROS_INFO("Write thread start...");
     Open(); 

@@ -1,9 +1,9 @@
-<library path="lib/libimage_consumer_nodelet">
-  <class name="image_consumer/ImageConsumerNodelet"
-        type="image_consumer::ImageConsumerNodelet"
+<library path="lib/libvideo_recorder_nodelet">
+  <class name="video_recorder/VideoRecorderNodelet"
+        type="video_recorder::VideoRecorderNodelet"
         base_class_type="nodelet::Nodelet">
     <description>
-      image_consumer nodelet 
+      video_recorder nodelet 
     </description>
   </class>
 </library>
