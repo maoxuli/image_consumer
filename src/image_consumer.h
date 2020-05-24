@@ -7,6 +7,7 @@
 #include <sensor_msgs/Image.h>
 
 #include <boost/thread.hpp>
+#include <memory>
 #include <mutex>
 #include <atomic>
 
@@ -45,7 +46,7 @@ private:
     std::mutex _mutex; 
 
     bool _auto_reset; 
-    ThreadSafeImage _queued_image; 
+    std::shared_ptr<ThreadSafeImage> _queued_image; 
 }; 
 
 #endif // #ifndef __IMAGE_CONSUMER_H

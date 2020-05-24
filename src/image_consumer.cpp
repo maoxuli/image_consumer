@@ -7,6 +7,7 @@ ImageConsumer::ImageConsumer(const ros::NodeHandle& nh,
                              const ros::NodeHandle& private_nh) 
 : _nh(nh)
 , _private_nh(private_nh)
+, _queued_image(new ThreadSafeImage())
 {
     try 
     {
@@ -40,6 +41,8 @@ ImageConsumer::ImageConsumer(const ros::NodeHandle& nh,
 ImageConsumer::~ImageConsumer() 
 {
     Close(); 
+
+    _queued_image.reset(); 
 
     if (_thread.joinable())
     {
@@ -76,7 +79,7 @@ void ImageConsumer::image_callback(const sensor_msgs::Image::ConstPtr& image_msg
         ROS_DEBUG("Image callback: %f", stamp.toSec());
 
         cv::Mat image = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8)->image; 
-        _queued_image.set(image); 
+        _queued_image->set(image); 
     }
     catch(const cv_bridge::Exception& ex)
     {
@@ -163,6 +166,8 @@ void ImageConsumer::Close()
 bool ImageConsumer::Write(const cv::Mat& image)
 {
     ROS_DEBUG("Write image to stream...");
+    if (image.empty()) return false; 
+
     std::lock_guard<std::mutex> lock(_mutex); 
     if (!_writer.isOpened()) return false; 
     _writer.write(image);
@@ -180,10 +185,9 @@ void ImageConsumer::write_thread()
     {
         try 
         {
-            if (!Write(_queued_image.pop())) 
+            if (!Write(_queued_image->pop())) 
             {
                 ROS_WARN("Failed to write image!");
-                ros::Duration(0.5).sleep();
                 if (_auto_reset) 
                 {
                     Close(); 

@@ -2,18 +2,25 @@
 #define __THREAD_SAFE_IMAGE_H 
 
 #include <opencv2/opencv.hpp>
-#include <boost/thread.hpp>
+#include <mutex>
+#include <condition_variable> 
+#include <atomic>
 
 class ThreadSafeImage
 {
-  boost::mutex _mutex;
-  boost::condition_variable _condition;
-  cv::Mat _image;
+public: 
+    ThreadSafeImage();
+    ~ThreadSafeImage(); 
 
-public:
-  void set(const cv::Mat& image);
-  cv::Mat get();
-  cv::Mat pop();
+    void set(const cv::Mat& image);
+    cv::Mat get();
+    cv::Mat pop();
+
+private: 
+    cv::Mat _image;
+    std::mutex _mutex;
+    std::condition_variable _condition;
+    std::atomic<bool> _stop; 
 };
 
 #endif // #ifndef __THREAD_SAFE_IMAGE_H
