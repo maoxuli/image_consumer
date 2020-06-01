@@ -10,7 +10,7 @@
   <arg name="auto_reset" default="true" />
 
   <arg name="target" default="output.mp4" />
-  <arg name="format" default="" />
+  <arg name="format" default="X264" />
   <arg name="width" default="1920" />
   <arg name="height" default="1080" />
   <arg name="fps" default="30" />
