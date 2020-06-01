@@ -5,7 +5,7 @@ project(video_recorder)
 add_compile_options(-std=c++11)
 
 ## OpenCV 3
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -110,7 +110,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  ${OpenCV_LIBRARIES}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
