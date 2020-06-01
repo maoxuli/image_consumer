@@ -171,6 +171,7 @@ bool VideoRecorder::Write(const cv::Mat& image)
     std::lock_guard<std::mutex> lock(_mutex); 
     if (!_writer.isOpened()) return false; 
     _writer.write(image);
+    ROS_INFO("Write image to stream!");
     return true;  
 }
 
