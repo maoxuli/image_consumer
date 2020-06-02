@@ -102,7 +102,7 @@ int get_fourcc(const std::string& format)
     {
         codec = cv::VideoWriter::fourcc(format[0], format[1], format[2], format[3]);
     } 
-    ROS_INFO("fourcc: " << codec); 
+    ROS_INFO_STREAM("fourcc: " << codec); 
     return codec; 
 }
 
