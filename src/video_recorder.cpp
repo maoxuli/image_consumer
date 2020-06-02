@@ -102,6 +102,7 @@ int get_fourcc(const std::string& format)
     {
         codec = cv::VideoWriter::fourcc(format[0], format[1], format[2], format[3]);
     } 
+    ROS_INFO("fourcc: " << codec); 
     return codec; 
 }
 
@@ -140,9 +141,11 @@ bool VideoRecorder::Open()
     ROS_INFO_STREAM("Output stream target: " << target);
     if (backend == "gstreamer") {
         _writer.open(target, cv::CAP_GSTREAMER, get_fourcc(format), fps, cv::Size(width, height));
+        ROS_INFO("Output stream with gstreamer backend opened.");
     }
     else {
         _writer.open(target, get_fourcc(format), fps, cv::Size(width, height)); 
+        ROS_INFO("Output stream opened.");
     }
 
     if (!_writer.isOpened()) 
@@ -151,7 +154,6 @@ bool VideoRecorder::Open()
         return false;
     }
 
-    ROS_INFO("Output stream opened.");
     return true;
 }
 
