@@ -15,7 +15,7 @@
   <arg name="height" default="1080" />
   <arg name="fps" default="30" />
 
-  <arg name="pipeline" default="appsrc ! video/x-raw, format=(string)BGR ! videoconvert ! video/x-raw, format=BGRx ! nvvidconv ! video/x-raw(memory:NVMM), format=(string)I420 ! omxh264enc ! qtmux ! filesink location=$(arg target)" />
+  <arg name="pipeline" default="appsrc ! video/x-raw, format=(string)BGR ! videoconvert ! video/x-raw, format=BGRx ! nvvidconv ! video/x-raw(memory:NVMM), format=(string)NV12 ! nvv4l2h264enc ! qtmux ! filesink location=$(arg target)" />
 
   <arg name="nodelet_manager" default="" />
   <arg name="manager_name" value="$(arg node_name)_manager" if="$(eval nodelet_manager == '')" />
