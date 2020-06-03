@@ -47,7 +47,7 @@ VideoRecorder::~VideoRecorder()
 }
 
 bool VideoRecorder::reset_callback(std_srvs::Trigger::Request &request, 
-                                  std_srvs::Trigger::Response &response)
+                                   std_srvs::Trigger::Response &response)
 {
     try 
     {
@@ -78,6 +78,7 @@ void VideoRecorder::image_callback(const sensor_msgs::Image::ConstPtr& image_msg
 
         cv::Mat image = cv_bridge::toCvShare(image_msg, sensor_msgs::image_encodings::BGR8)->image; 
         Write(image); 
+        write(image);
     }
     catch(const cv_bridge::Exception& ex)
     {
@@ -92,7 +93,7 @@ void VideoRecorder::image_callback(const sensor_msgs::Image::ConstPtr& image_msg
         ROS_WARN_STREAM("std::exception: " << ex.what());
     }
 
-    frame_count++; 
+    frame_count += 2; 
     double stop_time = ros::Time::now().toNSec(); 
     if (stop_time - start_time > 1000000000)
     {
