@@ -3,11 +3,24 @@
 
 #include <cv_bridge/cv_bridge.h>
 
+namespace {
+int get_fourcc(const std::string& format)
+{
+    int codec = 0;
+    if (format.size() >= 4) 
+    {
+        ROS_INFO_STREAM("fourcc: " << format[0] << "," << format[1] << "," << format[2] << "," << format[3]); 
+        codec = cv::VideoWriter::fourcc(format[0], format[1], format[2], format[3]);
+    } 
+    ROS_INFO_STREAM("fourcc: " << codec); 
+    return codec; 
+}
+}
+
 VideoRecorder::VideoRecorder(const ros::NodeHandle& nh, 
                              const ros::NodeHandle& private_nh) 
 : _nh(nh)
 , _private_nh(private_nh)
-, _queued_image(new ThreadSafeImage())
 {
     try 
     {
@@ -18,37 +31,19 @@ VideoRecorder::VideoRecorder(const ros::NodeHandle& nh,
         std::string image_topic = "image"; 
         ROS_INFO_STREAM("Subscribe image topic: " << image_topic);
         _image_sub = _nh.subscribe(image_topic, 2, &VideoRecorder::image_callback, this);
+
+        Open(); 
     }
     catch (const ros::Exception& ex)
     {
         ROS_ERROR_STREAM("ROS exception: " << ex.what());
         throw std::runtime_error(std::string("ROS exception: ") + ex.what()); 
     }
-
-    try 
-    {
-        _stop = false; 
-        ROS_INFO_STREAM("Start write thread...");
-        _thread = boost::thread(boost::bind(&VideoRecorder::write_thread, this));
-    } 
-    catch (const std::exception& ex) 
-    {
-        ROS_ERROR_STREAM("Boost thread exception: " << ex.what());
-        throw std::runtime_error(std::string("Boost thread exception: ") + ex.what());
-    }
 }
 
 VideoRecorder::~VideoRecorder() 
 {
     Close(); 
-
-    _queued_image.reset(); 
-
-    if (_thread.joinable())
-    {
-        _stop = true; 
-        _thread.join();
-    } 
 }
 
 bool VideoRecorder::reset_callback(std_srvs::Trigger::Request &request, 
@@ -73,13 +68,16 @@ bool VideoRecorder::reset_callback(std_srvs::Trigger::Request &request,
 
 void VideoRecorder::image_callback(const sensor_msgs::Image::ConstPtr& image_msg)
 {
+    static double start_time = ros::Time::now().toNSec(); 
+    static int frame_count = 0; 
+
     try
     {
         ros::Time stamp = image_msg->header.stamp; 
         ROS_DEBUG("Image callback: %f", stamp.toSec());
 
-        cv::Mat image = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8)->image; 
-        _queued_image->set(image); 
+        cv::Mat image = cv_bridge::toCvShare(image_msg, sensor_msgs::image_encodings::BGR8)->image; 
+        Write(image); 
     }
     catch(const cv_bridge::Exception& ex)
     {
@@ -93,17 +91,15 @@ void VideoRecorder::image_callback(const sensor_msgs::Image::ConstPtr& image_msg
     {
         ROS_WARN_STREAM("std::exception: " << ex.what());
     }
-}
 
-int get_fourcc(const std::string& format)
-{
-    int codec = 0;
-    if (format.size() >= 4) 
+    frame_count++; 
+    double stop_time = ros::Time::now().toNSec(); 
+    if (stop_time - start_time > 1000000000)
     {
-        codec = cv::VideoWriter::fourcc(format[0], format[1], format[2], format[3]);
-    } 
-    ROS_INFO_STREAM("fourcc: " << codec); 
-    return codec; 
+        start_time = stop_time; 
+        ROS_INFO_STREAM("Wirte FPS: " << frame_count); 
+        frame_count = 0; 
+    }
 }
 
 // Open stream for write 
@@ -111,7 +107,6 @@ int get_fourcc(const std::string& format)
 bool VideoRecorder::Open() 
 {
     ROS_INFO("Opening output stream...");
-    std::lock_guard<std::mutex> lock(_mutex); 
 
     // auto reset on failure or end of stream 
     _auto_reset = true; 
@@ -160,7 +155,6 @@ bool VideoRecorder::Open()
 void VideoRecorder::Close() 
 {
     ROS_INFO("Closing output stream...");
-    std::lock_guard<std::mutex> lock(_mutex); 
     _writer.release(); 
     ROS_INFO("Output stream closed!");
 }
@@ -170,51 +164,13 @@ bool VideoRecorder::Write(const cv::Mat& image)
     ROS_DEBUG("Write image to stream...");
     if (image.empty()) return false; 
 
-    std::lock_guard<std::mutex> lock(_mutex); 
-    if (!_writer.isOpened()) return false; 
+    if (!_writer.isOpened()) 
+    {
+        if (!_auto_reset || !Open()) 
+        {
+            return false;
+        } 
+    }
     _writer.write(image);
     return true;  
-}
-
-void VideoRecorder::write_thread() 
-{  
-    ROS_INFO("Write thread start...");
-    Open(); 
-
-    double start_time = ros::Time::now().toNSec(); 
-    int frame_count = 0; 
-    while (!_stop && ros::ok()) 
-    {
-        try 
-        {
-            if (!Write(_queued_image->pop())) 
-            {
-                ROS_WARN("Failed to write image!");
-                if (_auto_reset) 
-                {
-                    Close(); 
-                    ros::Duration(0.5).sleep();
-                    Open(); 
-                }
-                continue; 
-            }
-        }
-        catch (const cv::Exception& ex)
-        {
-            ROS_ERROR_STREAM("OpenCV exception: " << ex.what());
-            continue; 
-        }
-
-        frame_count++; 
-        double stop_time = ros::Time::now().toNSec(); 
-        if (stop_time - start_time > 1000000000)
-        {
-            start_time = stop_time; 
-            ROS_INFO_STREAM("Wirte FPS: " << frame_count); 
-            frame_count = 0; 
-        }
-    }
-
-    Close(); 
-    ROS_INFO("Write thread stopped!");
 }

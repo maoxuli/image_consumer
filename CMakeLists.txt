@@ -115,7 +115,6 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_nodelet 
-  src/thread_safe_image.cpp
   src/video_recorder.cpp 
   src/video_recorder_nodelet.cpp
 )
@@ -132,7 +131,6 @@ target_link_libraries(${PROJECT_NAME}_nodelet ${catkin_LIBRARIES} ${OpenCV_LIBRA
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
-  src/thread_safe_image.cpp
   src/video_recorder.cpp 
   src/video_recorder_node.cpp
 )

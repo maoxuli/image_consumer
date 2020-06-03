@@ -11,8 +11,6 @@
 #include <mutex>
 #include <atomic>
 
-#include "thread_safe_image.h"
-
 class VideoRecorder
 {
 public: 
@@ -26,8 +24,6 @@ private:
     void Close(); 
     bool Write(const cv::Mat& image); 
 
-    void write_thread(); 
-
     bool reset_callback(std_srvs::Trigger::Request  &request, 
                         std_srvs::Trigger::Response &response);
 
@@ -37,16 +33,11 @@ private:
     ros::NodeHandle _nh; 
     ros::NodeHandle _private_nh; 
     ros::Subscriber _image_sub; 
+    
     ros::ServiceServer _reset_svr; 
-
-    boost::thread _thread;
-    std::atomic<bool> _stop; 
+    bool _auto_reset; 
 
     cv::VideoWriter _writer; 
-    std::mutex _mutex; 
-
-    bool _auto_reset; 
-    std::shared_ptr<ThreadSafeImage> _queued_image; 
 }; 
 
 #endif // #ifndef __VIDEO_RECORDER_H
